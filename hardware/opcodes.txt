@@ -5,6 +5,80 @@ Various portions of the architecture are inspired by the 6502, Z80 and the 8086 
 However, it's different to all of them, and is really an architecture on it's own.
 
 -------------------------------------------------------------------------------
+ System overview
+-------------------------------------------------------------------------------
+
+  Address Bus                Data Bus
+    (16-bit)                 (8-bit)
+
+      | |                      | |
+      | |     +------+<--PCL-->| |       +------+
+      | |<----|  PC  |         | |<=====>|  A   |
+      | |     +------+<--PCH-->| |       +------+
+      | |                      | |          |
+      | |     +------+<-MARL-->| |          v
+      | |<--->| MAR  |         | |       +------+
+      | |     +------+<-MARH-->| |<======| ALU  |--+
+      | |        |             | |       +------+  |
+                 v             | |          ^      |
+              +------+         | |          |      |
+              |Memory|<------->| |       +------+  |
+              +------+         | |<=====>|  B   |  |
+                               | |       +------+  |
+              +------+         | |                 |
+              |Contrl|<------->| |       +------+  |
+              +------+         | |<=====>|  SR  |<-+
+                               | |       +------+
+                               | |
+                +------+       | |       +------+
+                |  SP  |<=====>| |<=====>|  X   |
+                +------+       | |       +------+
+                               | |
+                               | |       +------+
+                               | |<=====>|  Y   |
+                               | |       +------+
+                               | |
+
+-------------------------------------------------------------------------------
+ Control signals
+-------------------------------------------------------------------------------
+
+AI       Register A In
+AO       Register A Out
+BI       Register B In
+BO       Register B Out
+XI       Register X In
+XO       Register X Out
+YI       Register Y In
+YO       Register Y Out
+SFI      Status Flags In
+SFO      Status Flags Out
+ALM0     ALU Mode bit 0
+ALM1     ALU Mode bit 1
+ALM2     ALU Mode bit 2
+ALM3     ALU Mode bit 3
+ALO      ALU Out
+PCLI     Program Counter Low In
+PCLO     Program Counter Low Out
+PCHI     Program Counter High In
+PCHO     Program Counter High Out
+PCP      Program Counter ("Plus") Increment
+MARLI    Memory Address Register Low In
+MARLO    Memory Address Register Low Out
+MARHI    Memory Address Register High In
+MARHO    Memory Address Register High Out
+MI       Memory In
+MO       Memory Out
+CI       Control In
+CO       Control Out
+SPI      Stack Pointer Register In
+SPO      Stack Pointer Register Out
+PCI      Program Counter In
+PCO      Program Counter Out
+MARI     Memory Address Register In
+MARO     Memory Address Register Out
+
+-------------------------------------------------------------------------------
  Registers
 -------------------------------------------------------------------------------
 
