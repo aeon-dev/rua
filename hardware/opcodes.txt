@@ -1,8 +1,8 @@
 The Rua-1 is a Big Endian system.
 Opcodes are 8-bits, and can contain 0-N byte operands to form an instruction.
 
-Various portions of the architecture are inspired by the Z80 and the 8086 processors.
-However, it's different to both of them, and is really an architecture on it's own.
+Various portions of the architecture are inspired by the 6502, Z80 and the 8086 processors.
+However, it's different to all of them, and is really an architecture on it's own.
 
 -------------------------------------------------------------------------------
  Registers
@@ -11,33 +11,29 @@ However, it's different to both of them, and is really an architecture on it's o
 +=============================================+
 |       8 bits         |        8 bits        |
 +=============================================+
-|                      A                      |  Acumulator, also used for accessing memory
-+=============================================+
-|                      B                      |  Counter, can be used with INC, DEC etc.
-+=============================================+
-|                      C                      |  Mainly used in combination with CH and CL.
-+----------------------+----------------------+
-|         CH           |          CL          |  8-bit union registers (LSB and MSB portions of C)
-+=============================================+
 |                     PC                      |  Program counter
 +=============================================+
-|                     SP                      |  Stack pointer
-+=============================================+
-|                     SF                      |  Status flags
-+=============================================+
-|                     MAR                     |  Memory address register (internal)
-+=============================================+
-|        MCR           |                         Memory cache register (internal, used for reading 16 bit values from memory)
-+======================+
+                       |          A           |  Accumulator
+                       +======================+
+                       |          B           |  General purpose, Accumulator argument (ie. A - B)
+                       +======================+
+                       |          X           |  X register
+                       +======================+
+                       |          Y           |  Y register
+                       +======================+
+                       |          SP          |  Stack pointer
+                       +======================+
+                       |          SR          |  Status register
+                       +======================+
 
 -------------------------------------------------------------------------------
- Status flags
+ Status register
 -------------------------------------------------------------------------------
 
 +===============================================+
 |  7  |  6  |  5  |  4  |  3  |  2  |  1  |  0  |
 |-----------------------------------------------|
-| IE  |  -  |  -  |  -  | OF  | SF  | ZF  | CF  |
+|  IE |  -  |  -  |  -  | OF  | SF  | ZF  | CF  |
 +===============================================+
 
   Flag   |       Name       |                      Description
