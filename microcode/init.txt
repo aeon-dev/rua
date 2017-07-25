@@ -1,0 +1,6 @@
+pco    # Output program counter to the address bus
+mari   # Read from address bus
+mo     # Output memory on data bus
+ci     # Read instruction from the databus into the control
+
+pcp    # Inc the program counter

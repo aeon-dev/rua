@@ -21,28 +21,37 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-set(RUA_MCASM
+set(RUA_EMULATOR
+    src/bus.cpp
+    src/bus.h
+    src/ibus_transceiver.h
+    src/icontrol_unit.h
     src/main.cpp
-    src/assembler.cpp
-    src/assembler.h
-    src/header.cpp
-    src/header.h
+    src/simulated_alu.cpp
+    src/simulated_alu.h
+    src/simulated_register8.cpp
+    src/simulated_register8.h
+    src/simulated_control_unit.cpp
+    src/simulated_control_unit.h
+    src/module.h
+    src/cpu.cpp
+    src/cpu.h
 )
 
-source_group(common FILES ${RUA_MCASM})
+source_group(common FILES ${RUA_EMULATOR})
 
-add_executable(mcasm ${RUA_MCASM})
+add_executable(emulator ${RUA_EMULATOR})
 
-set_target_properties(mcasm PROPERTIES
+set_target_properties(emulator PROPERTIES
     FOLDER rua
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
-target_include_directories(mcasm PRIVATE src)
-target_link_libraries(mcasm common)
+target_include_directories(emulator PRIVATE src)
+target_link_libraries(emulator common)
 
 install(
-    TARGETS mcasm
+    TARGETS emulator
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib

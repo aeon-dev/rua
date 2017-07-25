@@ -21,28 +21,25 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-set(RUA_MCASM
+set(RUA_RASM
     src/main.cpp
-    src/assembler.cpp
-    src/assembler.h
-    src/header.cpp
-    src/header.h
+    src/parser.cpp
+    src/parser.h
 )
 
-source_group(common FILES ${RUA_MCASM})
+source_group(common FILES ${RUA_RASM})
 
-add_executable(mcasm ${RUA_MCASM})
+add_executable(rasm ${RUA_RASM})
 
-set_target_properties(mcasm PROPERTIES
+set_target_properties(rasm PROPERTIES
     FOLDER rua
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
-target_include_directories(mcasm PRIVATE src)
-target_link_libraries(mcasm common)
+target_include_directories(rasm PRIVATE src)
 
 install(
-    TARGETS mcasm
+    TARGETS rasm
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib

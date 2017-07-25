@@ -1,5 +1,6 @@
 # Common
 *.log
+*.bin
 .clang-format
 bin/imgui.ini
 build_deploy

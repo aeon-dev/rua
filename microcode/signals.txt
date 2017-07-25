@@ -1,0 +1,43 @@
+# Mnemonic, bitvalue,                 Description
+AI,         0x0000000000000001,       Register A In
+AO,         0x0000000000000002,       Register A Out
+BI,         0x0000000000000004,       Register B In
+BO,         0x0000000000000008,       Register B Out
+XI,         0x0000000000000010,       Register X In
+XO,         0x0000000000000020,       Register X Out
+YI,         0x0000000000000040,       Register Y In
+YO,         0x0000000000000080,       Register Y Out
+XYI,        0x0000000000000100,       Register XY In (16-bit)
+XYO,        0x0000000000000200,       Register XY Out (16-bit)
+SRI,        0x0000000000000400,       Status Register In
+SRO,        0x0000000000000800,       Status Register Out
+ALM0,       0x0000000000001000,       ALU Mode bit 0
+ALM1,       0x0000000000002000,       ALU Mode bit 1
+ALM2,       0x0000000000004000,       ALU Mode bit 2
+ALM3,       0x0000000000008000,       ALU Mode bit 3
+ALO,        0x0000000000010000,       ALU Out
+MI,         0x0000000000020000,       Memory In
+MO,         0x0000000000040000,       Memory Out
+CI,         0x0000000000080000,       Control In
+CO,         0x0000000000100000,       Control Out
+CMO,        0x0000000000200000,       Control Memory Out
+SPI,        0x0000000000400000,       Stack Pointer Register In
+SPO,        0x0000000000800000,       Stack Pointer Register Out
+SPAO,       0x0000000001000000,       Stack Pointer Register Address Out
+PCP,        0x0000000002000000,       Program Counter ("Plus") Increment
+PCI,        0x0000000004000000,       Program Counter In
+PCO,        0x0000000008000000,       Program Counter Out
+PCJ,        0x0000000010000000,       Program Counter Jump
+JM0,        0x0000000020000000,       Jump Mode bit 0
+JM1,        0x0000000040000000,       Jump Mode bit 1
+JM2,        0x0000000080000000,       Jump Mode bit 2
+JM3,        0x0000000100000000,       Jump Mode bit 3
+MARI,       0x0000000200000000,       Memory Address Register In
+CLC,        0x0000000400000000,       Clear Carry Flag
+SEC,        0x0000000800000000,       Set Carry Flag
+CLO,        0x0000001000000000,       Clear Overflow Flag
+SEO,        0x0000002000000000,       Set Overflow Flag
+IOI,        0x0000004000000000,       IO Input (Extension Bus)
+IOO,        0x0000008000000000,       IO Output (Extension Bus)
+EOI,        0x1000000000000000,       End of Instruction
+HLT,        0x2000000000000000,       Halt the processor

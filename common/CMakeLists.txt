@@ -21,29 +21,30 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-set(RUA_MCASM
-    src/main.cpp
-    src/assembler.cpp
-    src/assembler.h
-    src/header.cpp
-    src/header.h
+set(RUA_COMMON
+    src/control_signals.h
+    src/control_signals.cpp
 )
 
-source_group(common FILES ${RUA_MCASM})
+source_group(common FILES ${RUA_COMMON})
 
-add_executable(mcasm ${RUA_MCASM})
+add_library(common STATIC ${RUA_COMMON})
 
-set_target_properties(mcasm PROPERTIES
+set_target_properties(common PROPERTIES
     FOLDER rua
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    LINKER_LANGUAGE CXX
 )
 
-target_include_directories(mcasm PRIVATE src)
-target_link_libraries(mcasm common)
+target_include_directories(common PUBLIC src)
+
+target_link_libraries(common aeon_common aeon_streams)
 
 install(
-    TARGETS mcasm
+    TARGETS common
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
 )
+
+add_subdirectory(tests)
+

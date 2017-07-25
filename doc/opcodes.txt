@@ -1,0 +1,581 @@
+The Rua-1 is a Little-Endian system.
+Opcodes are 8-bits, and can contain 0-N byte operands to form an instruction.
+
+Various portions of the architecture are inspired by the 6502, Z80 and the 8086 processors.
+However, it's different to all of them, and is really an architecture on it's own.
+
+===============================================================================
+ System CPU overview
+===============================================================================
+
+                             +----------------------------+
+Address Bus                  |          Data Bus          |
+ (16-bit)                    v  PCP      (8-bit)          |
+    | |     PCI/PCO       +------+         | |  JM0-JM3   |
+    | |<=================>|  PC  |<--------| |        +--------+
+    | |                   +------+         | |        |JmpLogic|
+    | |                                    | |        +--------+
+    | |                    (lsb)           | |            ^ PCJ
+    | |                   +------+  XI/XO  | |            |
+    | |          +=======>|  X   |<=======>| | SRI/SRO +------+ CLC/SEC/CLO/SEO
+    | |          |        +------+         | |<=======>|  SR  |<-+
+    | |  XYI/XYO |                         | |         +------+  |
+    | |<=========+                         | |                   |
+    | |          |         (msb)           | |                   |
+    | |          |        +------+  YI/YO  | |  BI/BO  +------+  |
+    | |          +=======>|  Y   |<=======>| |<=======>|  B   |  |
+    | |                   +------+         | |         +------+  |
+    | |                                    | |            |      |
+    | |       MARI        +------+         | |  ALM0-ALM3 v      |
+    | |------------------>| MAR  |         | |   ALO   +------+  |
+    | |                   +------+         | |<--------| ALU  |--+
+    | |                      |             | |         +------+
+    | |                      v             | |            ^
+    | |                   +------+  MI/MO  | |            |
+    | |                   |Memory|<=======>| |  AI/AO  +------+
+    | |                   +------+         | |<=======>|  A   |
+    | |                                    | |         +------+
+    | |                   EOI/HLT          | |
+    | |       CMO         +------+  CI/CO  | |
+    | |<------------------|Contrl|<=======>| |
+    | |                   +------+         | |                 IOI/IOO
+    | |                                    | |        +----------+
+    | |                                    | |<======>| Bus Data |
+    | |       SPAO        +------+ SPI/SPO | |        +----------+
+    | |<------------------|  SP  |<=======>| |
+    | |                   +------+         | |
+    | |
+    | |       +---------+
+    | |------>| Bus Adr |
+    | |       +---------+
+
+===============================================================================
+ Extension Bus
+===============================================================================
+
+The extension general purpose bus is connected directly to the CPU's data and
+address lines. The IOI and IOO control lines determine if a device is being
+written to or read from. Both the address lines and data lines are always
+connected to the bus. This allows extension cards to essentially listen in on
+what the CPU is doing. 
+
+An extension card should only put something on the bus if it is being addressed
+and IOI is high.
+
+Bus pinout:
+             Pin No
+      Data0 |  1   2 | Address0
+      Data1 |  3   4 | Address1
+      Data2 |  5   6 | Address2
+      Data3 |  7   8 | Address3
+      Data4 |  9  10 | Address4
+      Data5 | 11  12 | Address5
+      Data6 | 13  14 | Address6
+      Data7 | 15  16 | Address7
+        GND | 17  18 | Address8
+        CLK | 19  20 | Address9
+        GND | 21  22 | Address10
+        IOI | 23  24 | Address11
+        GND | 25  26 | Address12
+        IOO | 27  28 | Address13
+        GND | 29  30 | Address14
+        VCC | 31  32 | Address15
+
+===============================================================================
+ Control signals
+===============================================================================
+
+  Signal  |  Description     
+-----------------------------------------------
+   AI     |  Register A In
+   AO     |  Register A Out
+   BI     |  Register B In
+   BO     |  Register B Out
+   XI     |  Register X In
+   XO     |  Register X Out
+   YI     |  Register Y In
+   YO     |  Register Y Out
+   XYI    |  Register XY In (16-bit)
+   XYO    |  Register XY Out (16-bit)
+   SRI    |  Status Register In
+   SRO    |  Status Register Out
+   ALM0   |  ALU Mode bit 0
+   ALM1   |  ALU Mode bit 1
+   ALM2   |  ALU Mode bit 2
+   ALM3   |  ALU Mode bit 3
+   ALO    |  ALU Out
+   MI     |  Memory In
+   MO     |  Memory Out
+   CI     |  Control In
+   CO     |  Control Out
+   CMO    |  Control Memory Out
+   SPI    |  Stack Pointer Register In
+   SPO    |  Stack Pointer Register Out
+   SPAO   |  Stack Pointer Register Address Out
+   PCP    |  Program Counter ("Plus") Increment
+   PCI    |  Program Counter In
+   PCO    |  Program Counter Out
+   PCJ    |  Program Counter Jump
+   JM0    |  Jump Mode bit 0
+   JM1    |  Jump Mode bit 1
+   JM2    |  Jump Mode bit 2
+   JM3    |  Jump Mode bit 3
+   MARI   |  Memory Address Register In
+   CLC    |  Clear Carry Flag
+   SEC    |  Set Carry Flag
+   CLO    |  Clear Overflow Flag
+   SEO    |  Set Overflow Flag
+   IOI    |  IO Input (Extension Bus)
+   IOO    |  IO Output (Extension Bus)
+   EOI    |  End of Instruction
+   HLT    |  Halt the processor
+
+===============================================================================
+ Registers
+===============================================================================
+
++=============================================+
+|       8 bits         |        8 bits        |
++=============================================+
+|                     PC                      |  Program counter (internal)
++=============================================+
+|                     MAR                     |  Memory Access Register (internal)
++=============================================+
+|         Y            |          X           |  General purpose, 16-bit interaction
++=============================================+
+                       |          A           |  Accumulator
+                       +======================+
+                       |          B           |  General purpose, Accumulator argument (ie. A - B)
+                       +======================+
+                       |          SP          |  Stack pointer
+                       +======================+
+                       |          SR          |  Status register
+                       +======================+
+
+===============================================================================
+ Status register
+===============================================================================
+
++===============================================+
+|  7  |  6  |  5  |  4  |  3  |  2  |  1  |  0  |
+|-----------------------------------------------|
+|  IE |  -  |  -  |  -  | OF  | SF  | ZF  | CF  |
++===============================================+
+
+  Flag   |       Name       |                      Description
+---------|----------------------------------------------------------------------------
+  CF     | Carry            | 1 when the MSB generated a carry after an ALU operation
+  ZF     | Zero             | An ALU operation resulted in 0
+  SF     | Sign             | Set to MSB of result after ALU operation
+  OF     | Overflow         | Set when a signed ALU operation resulted in overflow
+  IE     | Interrupt enable | Can be used to turn off interrupts
+
+===============================================================================
+ Instruction set addressing modes
+===============================================================================
+
+  Mode  |   Description
+--------------------------------------------------------
+  reg   | A register. Can be any of the 8-bit registers.
+  imm8  | 8-bit immediate value
+  adr   | 16-bit memory address
+
+===============================================================================
+ Move operations
+===============================================================================
+
+MOV reg, reg
+MOV reg, imm8
+MOV reg, [adr]
+MOV [adr], reg
+
+===============================================================================
+ Jump operations
+===============================================================================
+
+JMP adr
+
+JMP can be replaced with any of the jump or conditional jump instructions below.
+
+  Instruction  |   Description                 | signed-ness |  Condition Flags   
+-----------------------------------------------------------------------------------
+      JMP      | Jump to another address       |             |          x
+      JO       | Jump if overflow              |             |       OF = 1
+      JNO      | Jump if not overflow          |             |       OF = 0
+      JS       | Jump if sign                  |             |       SF = 1
+      JNS      | Jump if not sign              |             |       SF = 0
+     JE/JZ     | Jump if equal (zero)          |             |       ZF = 1
+    JNE/JNZ    | Jump if not equal (not zero)  |             |       ZF = 0
+     JB/JC     | Jump if below (carry)         |  unsigned   |       CF = 1
+    JNB/JNC    | Jump if not below (not carry) |  unsigned   |       CF = 0
+      JBE      | Jump if below or equal        |  unsigned   |  CF = 1 or ZF = 1
+      JA       | Jump if above                 |  unsigned   | CF = 0 and ZF = 0
+      JL       | Jump if less                  |   signed    |      SF != OF
+      JGE      | Jump if greater or equal      |   signed    |      SF == OF
+      JLE      | Jump if less or equal         |   signed    | ZF = 1 or SF != OF
+      JG       | Jump if greater               |   signed    | ZF = 0 and SF == OF
+
+===============================================================================
+ ALU operations
+===============================================================================
+
+An ALU operation is always done through registers A, using B as the parameter value where applicable.
+The result can be written to a register, or an immediate memory address.
+
+add reg
+sub adr
+
+  Instruction |   Description
+---------------------------------------------
+     ADD      | Add (A + B)
+     SUB      | Subtract (A - B)
+     ADC      | Add with carry (A + B + CF)
+     LSH      | Left shift (A << B)
+     RSH      | Right shift (A >> B)
+     OR       | OR (A | B)
+     AND      | AND (A & B)
+     XOR      | XOR (A ^ B)
+     
+Additionally, some ALU operations don't have an output:
+
+  Instruction |   Description
+---------------------------------------------
+     CMP      | Compare (A == B)
+     INC      | A++
+     DEC      | A--
+
+===============================================================================
+ Procedures & Stack
+===============================================================================
+
+CALL adr
+
+Push the current PC (Program Counter) register value onto the stack and jump.
+When RET is called, the PC value is popped from the stack back into PC.
+
+RET
+Return from a CALL.
+
+PUSH imm8
+PUSH reg
+PUSH [adr]
+
+POP reg
+POP [adr]
+
+===============================================================================
+ Interrupts
+===============================================================================
+
+INT reg
+INT imm8
+Call interrupt vector.
+
+IRET
+Return from an interrupt call.
+
+CLI
+Clear interrupt flag. Disables all interrupts.
+
+SEI
+Set the interrupt flag, enabling interrupts.
+
+===============================================================================
+ Byte code
+===============================================================================
+
+REG
+Instructions encoded with a 3 bit "reg" are used to denote a register that the instruction
+operates on. This can be a source or destination depending on the context.
+
+ regm | Register 
+------+----------
+ 0x0  | A
+ 0x1  | B
+ 0x2  | X
+ 0x3  | Y
+ 0x4  | SP
+ 0x5  | SR
+ 0x6  | [SP]
+ 0x7  | [XY]
+
+REGM
+Instruction encoded with a 4 bit "regm" are used to denote a source and destination register.
+
+ regm | Source | Destination
+------+--------+-------------
+ 0x0  |   A    |   B
+ 0x1  |   A    |   X
+ 0x2  |   A    |   Y
+ 0x3  |   A    |   SP
+ 0x4  |   A    |   SR
+ 0x5  |   B    |   A
+ 0x6  |   B    |   X
+ 0x7  |   B    |   Y
+ 0x8  |   B    |   SP
+ 0x9  |   B    |   SR
+ 0xA  |   X    |   A
+ 0xB  |   X    |   B
+ 0xC  |   Y    |   A
+ 0xD  |   Y    |   B
+ 0xE  |   SP   |   A
+ 0xF  |   SR   |   A
+
+Opcode|   Bits   |      Name        | Bytes | Args    | Description
+------+----------+------------------+-------+---------+-------------------------
+  00  | 0000regm | MOV A, B         | 1     |         |
+  01  | 0000regm | MOV A, X         | 1     |         |
+  02  | 0000regm | MOV A, Y         | 1     |         |
+  03  | 0000regm | MOV A, SP        | 1     |         |
+  04  | 0000regm | MOV A, SR        | 1     |         |
+  05  | 0000regm | MOV B, A         | 1     |         |
+  06  | 0000regm | MOV B, X         | 1     |         |
+  07  | 0000regm | MOV B, Y         | 1     |         |
+  08  | 0000regm | MOV B, SP        | 1     |         |
+  09  | 0000regm | MOV B, SR        | 1     |         |
+  0A  | 0000regm | MOV X, A         | 1     |         |
+  0B  | 0000regm | MOV X, B         | 1     |         |
+  0C  | 0000regm | MOV Y, A         | 1     |         |
+  0D  | 0000regm | MOV Y, B         | 1     |         |
+  0E  | 0000regm | MOV SP, A        | 1     |         |
+  0F  | 0000regm | MOV SR, A        | 1     |         |
+  10  | 00010reg | MOV A, imm8      | 2     | imm8    |
+  11  | 00010reg | MOV B, imm8      | 2     | imm8    |
+  12  | 00010reg | MOV X, imm8      | 2     | imm8    |
+  13  | 00010reg | MOV Y, imm8      | 2     | imm8    |
+  14  | 00010reg | MOV SP, imm8     | 2     | imm8    |
+  15  | 00010reg | MOV SR, imm8     | 2     | imm8    |
+  16  | 00010reg | MOV [SP], imm8   | 2     | imm8    |
+  17  | 00010reg | MOV [XY], imm8   | 2     | imm8    |
+  18  | 00011reg | MOV imm8, A      | 2     | imm8    |
+  19  | 00011reg | MOV imm8, B      | 2     | imm8    |
+  1A  | 00011reg | MOV imm8, X      | 2     | imm8    |
+  1B  | 00011reg | MOV imm8, Y      | 2     | imm8    |
+  1C  | 00011reg | MOV imm8, SP     | 2     | imm8    |
+  1D  | 00011reg | MOV imm8, SR     | 2     | imm8    |
+  1E  | 00011reg | MOV imm8, [SP]   | 2     | imm8    |
+  1F  | 00011reg | MOV imm8, [XY]   | 2     | imm8    |
+  20  | 00100reg | MOV A, [mem]     | 3     | address |
+  21  | 00100reg | MOV B, [mem]     | 3     | address |
+  22  | 00100reg | MOV X, [mem]     | 3     | address |
+  23  | 00100reg | MOV Y, [mem]     | 3     | address |
+  24  | 00100reg | MOV SP, [mem]    | 3     | address |
+  25  | 00100reg | MOV SR, [mem]    | 3     | address |
+  26  | 00100reg | MOV [SP], [mem]  | 3     | address |
+  27  | 00100reg | MOV [XY], [mem]  | 3     | address |
+  28  | 00101reg | MOV [mem], A     | 3     | address |
+  29  | 00101reg | MOV [mem], B     | 3     | address |
+  2A  | 00101reg | MOV [mem], X     | 3     | address |
+  2B  | 00101reg | MOV [mem], Y     | 3     | address |
+  2C  | 00101reg | MOV [mem], SP    | 3     | address |
+  2D  | 00101reg | MOV [mem], SR    | 3     | address |
+  2E  | 00101reg | MOV [mem], [SP]  | 3     | address |
+  2F  | 00101reg | MOV [mem], [XY]  | 3     | address |
+  30  | 00110reg | PUSH A           | 1     |         |
+  31  | 00110reg | PUSH B           | 1     |         |
+  32  | 00110reg | PUSH X           | 1     |         |
+  33  | 00110reg | PUSH Y           | 1     |         |
+  34  | 00110100 | PUSH imm8        | 2     | imm8    |
+  35  | 00110reg | PUSH SR          | 1     |         |
+  36  | 00110110 | PUSH [mem]       | 3     | address |
+  37  | 00110reg | PUSH [XY]        | 1     |         |
+  38  | 00111reg | POP A            | 1     |         |
+  39  | 00111reg | POP B            | 1     |         |
+  3A  | 00111reg | POP X            | 1     |         |
+  3B  | 00111reg | POP Y            | 1     |         |
+  3C  |          |                  |       |         |
+  3D  | 00111reg | POP SR           | 1     |         |
+  3E  | 00111reg | POP [mem]        | 3     | address |
+  3F  | 00111reg | POP [xy]         | 1     |         |
+  40  | 01000reg | ADD A            | 1     |         |
+  41  | 01000reg | ADD B            | 1     |         |
+  42  | 01000reg | ADD X            | 1     |         |
+  43  | 01000reg | ADD Y            | 1     |         |
+  44  | 01000reg | ADD SP           | 1     |         |
+  45  | 01000101 | ADD [mem]        | 3     | address |
+  46  | 01000reg | ADD [SP]         | 1     |         |
+  47  | 01000reg | ADD [XY]         | 1     |         |
+  48  | 01001reg | SUB A            | 1     |         |
+  49  | 01001reg | SUB B            | 1     |         |
+  4A  | 01001reg | SUB X            | 1     |         |
+  4B  | 01001reg | SUB Y            | 1     |         |
+  4C  | 01001reg | SUB SP           | 1     |         |
+  4D  | 01001101 | SUB [mem]        | 3     | address |
+  4E  | 01001reg | SUB [SP]         | 1     |         |
+  4F  | 01001reg | SUB [XY]         | 1     |         |
+  50  | 01010reg | ADC A            | 1     |         |
+  51  | 01010reg | ADC B            | 1     |         |
+  52  | 01010reg | ADC X            | 1     |         |
+  53  | 01010reg | ADC Y            | 1     |         |
+  54  | 01010reg | ADC SP           | 1     |         |
+  55  | 01010101 | ADC [mem]        | 3     | address |
+  56  | 01010reg | ADC [SP]         | 1     |         |
+  57  | 01010reg | ADC [XY]         | 1     |         |
+  58  | 01011reg | LSH A            | 1     |         |
+  59  | 01011reg | LSH B            | 1     |         |
+  5A  | 01011reg | LSH X            | 1     |         |
+  5B  | 01011reg | LSH Y            | 1     |         |
+  5C  | 01011reg | LSH SP           | 1     |         |
+  5D  | 01011101 | LSH [mem]        | 3     | address |
+  5E  | 01011reg | LSH [SP]         | 1     |         |
+  5F  | 01011reg | LSH [XY]         | 1     |         |
+  60  | 01100reg | RSH A            | 1     |         |
+  61  | 01100reg | RSH B            | 1     |         |
+  62  | 01100reg | RSH X            | 1     |         |
+  63  | 01100reg | RSH Y            | 1     |         |
+  64  | 01100reg | RSH SP           | 1     |         |
+  65  | 01100101 | RSH [mem]        | 3     | address |
+  66  | 01100reg | RSH [SP]         | 1     |         |
+  67  | 01100reg | RSH [XY]         | 1     |         |
+  68  | 01101reg | OR A             | 1     |         |
+  69  | 01101reg | OR B             | 1     |         |
+  6A  | 01101reg | OR X             | 1     |         |
+  6B  | 01101reg | OR Y             | 1     |         |
+  6C  | 01101reg | OR SP            | 1     |         |
+  6D  | 01101101 | OR [mem]         | 3     | address |
+  6E  | 01101reg | OR [SP]          | 1     |         |
+  6F  | 01101reg | OR [XY]          | 1     |         |
+  70  | 01110reg | AND A            | 1     |         |
+  71  | 01110reg | AND B            | 1     |         |
+  72  | 01110reg | AND X            | 1     |         |
+  73  | 01110reg | AND Y            | 1     |         |
+  74  | 01110reg | AND SP           | 1     |         |
+  75  | 01110101 | AND [mem]        | 3     | address |
+  76  | 01110reg | AND [SP]         | 1     |         |
+  77  | 01110reg | AND [XY]         | 1     |         |
+  78  | 01111reg | XOR A            | 1     |         |
+  79  | 01111reg | XOR B            | 1     |         |
+  7A  | 01111reg | XOR X            | 1     |         |
+  7B  | 01111reg | XOR Y            | 1     |         |
+  7C  | 01111reg | XOR SP           | 1     |         |
+  7D  | 01111101 | XOR [mem]        | 3     | address |
+  7E  | 01111reg | XOR [SP]         | 1     |         |
+  7F  | 01111reg | XOR [XY]         | 1     |         |
+  80  | 10000000 | CMP              | 1     |         |
+  81  | 10000001 | INC              | 1     |         |
+  82  | 10000010 | DEC              | 1     |         |
+  83  |          |                  |       |         |
+  84  |          |                  |       |         |
+  85  |          |                  |       |         |
+  86  |          |                  |       |         |
+  87  |          |                  |       |         |
+  88  |          |                  |       |         |
+  89  |          |                  |       |         |
+  8A  |          |                  |       |         |
+  8B  |          |                  |       |         |
+  8C  |          |                  |       |         |
+  8D  |          |                  |       |         |
+  8E  |          |                  |       |         |
+  8F  |          |                  |       |         |
+  90  |          |                  |       |         |
+  91  |          |                  |       |         |
+  92  |          |                  |       |         |
+  93  |          |                  |       |         |
+  94  |          |                  |       |         |
+  95  |          |                  |       |         |
+  96  |          |                  |       |         |
+  97  |          |                  |       |         |
+  98  |          |                  |       |         |
+  99  |          |                  |       |         |
+  9A  |          |                  |       |         |
+  9B  |          |                  |       |         |
+  9C  |          |                  |       |         |
+  9D  |          |                  |       |         |
+  9E  |          |                  |       |         |
+  9F  |          |                  |       |         |
+  A0  |          |                  |       |         |
+  A1  |          |                  |       |         |
+  A2  |          |                  |       |         |
+  A3  |          |                  |       |         |
+  A4  |          |                  |       |         |
+  A5  |          |                  |       |         |
+  A6  |          |                  |       |         |
+  A7  |          |                  |       |         |
+  A8  |          |                  |       |         |
+  A9  |          |                  |       |         |
+  AA  |          |                  |       |         |
+  AB  |          |                  |       |         |
+  AC  |          |                  |       |         |
+  AD  |          |                  |       |         |
+  AE  |          |                  |       |         |
+  AF  |          |                  |       |         |
+  B0  |          |                  |       |         |
+  B1  |          |                  |       |         |
+  B2  |          |                  |       |         |
+  B3  |          |                  |       |         |
+  B4  |          |                  |       |         |
+  B5  |          |                  |       |         |
+  B6  |          |                  |       |         |
+  B7  |          |                  |       |         |
+  B8  |          |                  |       |         |
+  B9  |          |                  |       |         |
+  BA  |          |                  |       |         |
+  BB  |          |                  |       |         |
+  BC  |          |                  |       |         |
+  BD  |          |                  |       |         |
+  BE  |          |                  |       |         |
+  BF  |          |                  |       |         |
+  C0  | 11000000 | CALL             | 3     | address |
+  C1  | 11000001 | RET              | 1     |         |
+  C2  |          |                  |       |         |
+  C3  |          |                  |       |         |
+  C4  |          |                  |       |         |
+  C5  |          |                  |       |         |
+  C6  |          |                  |       |         |
+  C7  |          |                  |       |         |
+  C8  |          |                  |       |         |
+  C9  |          |                  |       |         |
+  CA  |          |                  |       |         |
+  CB  |          |                  |       |         |
+  CC  |          |                  |       |         |
+  CD  |          |                  |       |         |
+  CE  |          |                  |       |         |
+  CF  |          |                  |       |         |
+  D0  | 11010000 | JMP              | 3     | address |
+  D1  | 11010001 | JO               | 3     | address |
+  D2  | 11010010 | JNO              | 3     | address |
+  D3  | 11010011 | JS               | 3     | address |
+  D4  | 11010100 | JNS              | 3     | address |
+  D5  | 11010101 | JE/JZ            | 3     | address |
+  D6  | 11010110 | JNE/JNZ          | 3     | address |
+  D7  | 11010111 | JB/JC            | 3     | address |
+  D8  | 11011000 | JNB/JNC          | 3     | address |
+  D9  | 11011001 | JBE              | 3     | address |
+  DA  | 11011010 | JA               | 3     | address |
+  DB  | 11011011 | JL               | 3     | address |
+  DC  | 11011100 | JGE              | 3     | address |
+  DD  | 11011101 | JLE              | 3     | address |
+  DE  | 11011110 | JG               | 3     | address |
+  DF  |          |                  |       |         |
+  E0  |          |                  |       |         |
+  E1  |          |                  |       |         |
+  E2  |          |                  |       |         |
+  E3  |          |                  |       |         |
+  E4  |          |                  |       |         |
+  E5  |          |                  |       |         |
+  E6  |          |                  |       |         |
+  E7  |          |                  |       |         |
+  E8  |          |                  |       |         |
+  E9  |          |                  |       |         |
+  EA  |          |                  |       |         |
+  EB  |          |                  |       |         |
+  EC  |          |                  |       |         |
+  ED  |          |                  |       |         |
+  EE  |          |                  |       |         |
+  EF  |          |                  |       |         |
+  F0  | 11110000 | CLC              | 1     |         | Clear Carry Flag
+  F1  | 11110001 | SEC              | 1     |         | Set Carry Flag
+  F2  | 11110010 | CLO              | 1     |         | Clear Overflow Flag
+  F3  | 11110011 | SEO              | 1     |         | Set Overflow Flag
+  F4  |          |                  |       |         |
+  F5  |          |                  |       |         |
+  F6  |          |                  |       |         |
+  F7  |          |                  |       |         |
+  F8  |          |                  |       |         |
+  F9  |          |                  |       |         |
+  FA  |          |                  |       |         |
+  FB  |          |                  |       |         |
+  FC  |          |                  |       |         |
+  FD  |          |                  |       |         |
+  FE  |          |                  |       |         |
+  FF  | 11111111 | HLT              | 1     |         |

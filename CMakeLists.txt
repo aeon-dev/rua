@@ -22,7 +22,13 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 cmake_minimum_required(VERSION 3.2.0)
-project(Rua)
+
+if (DEFINED ENV{RUA_PROJECT_NAME})
+    project($ENV{RUA_PROJECT_NAME})
+else ()
+    project(Rua)
+endif ()
+
 
 # Don't allow any circular dependencies. Not even for static libraries.
 set_property(GLOBAL PROPERTY GLOBAL_DEPENDS_NO_CYCLES 1)
@@ -52,4 +58,7 @@ if (MSVC)
 endif ()
 
 add_subdirectory(dep)
+add_subdirectory(common)
 add_subdirectory(mcasm)
+add_subdirectory(rasm)
+add_subdirectory(emulator)

@@ -23,26 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "assembler.h"
-#include <exception>
-#include <iostream>
-
 int main(int argc, char *argv[])
 {
-    try
-    {
-        rua::assembler a;
-
-        if (!a.parse_arguments(argc, argv))
-            return 1;
-
-        a.assemble();
-    }
-    catch (const std::exception &ex)
-    {
-        std::cerr << ex.what() << std::endl;
-        return 1;
-    }
-
     return 0;
 }

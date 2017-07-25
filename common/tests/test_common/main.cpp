@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Robin Degen
+ * Copyright (c) 2012-2017 Robin Degen
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,26 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "assembler.h"
-#include <exception>
-#include <iostream>
+#include <gtest/gtest.h>
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
-    try
-    {
-        rua::assembler a;
-
-        if (!a.parse_arguments(argc, argv))
-            return 1;
-
-        a.assemble();
-    }
-    catch (const std::exception &ex)
-    {
-        std::cerr << ex.what() << std::endl;
-        return 1;
-    }
-
-    return 0;
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

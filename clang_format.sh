@@ -6,9 +6,7 @@ function format {
     find "$DIRECTORY" \( -name '*.h' -or -name '*.cpp' \) -print0 | xargs -0 "$CLANG_FORMAT" -i
 }
 
-format $(PWD)/engine
-format $(PWD)/examples
-
-pushd $(PWD)/dep/libaeon/
-source clang_format.sh
-popd
+format $(PWD)/common
+format $(PWD)/emulator
+format $(PWD)/mcasm
+format $(PWD)/rasm
