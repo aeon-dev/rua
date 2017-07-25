@@ -21,36 +21,26 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-cmake_minimum_required(VERSION 3.2.0)
-project(Rua)
+set(RUA_RASM
+    src/main.cpp
+    src/parser.cpp
+    src/parser.h
+)
 
-# Don't allow any circular dependencies. Not even for static libraries.
-set_property(GLOBAL PROPERTY GLOBAL_DEPENDS_NO_CYCLES 1)
+source_group(common FILES ${RUA_RASM})
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/dep/cmake/;${CMAKE_MODULE_PATH}")
+add_library(rasm STATIC ${RUA_RASM})
 
-include(CompilerFlags)
+set_target_properties(rasm PROPERTIES
+    FOLDER rua
+    LINKER_LANGUAGE CXX
+)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+target_include_directories(rasm PRIVATE src)
 
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE TYPE INTERNAL FORCE)
-
-set(CMAKE_DEBUG_POSTFIX "_d")
-
-set(CMAKE_CXX_STANDARD 14)
-
-################################################################################
-
-if (MSVC)
-    option(AEON_ENABLE_MSVC_MP_BUILD "Use the /MP flag in Visual Studio to use multiple processes per cpp file." ON)
-    if (AEON_ENABLE_MSVC_MP_BUILD)
-        message (STATUS "Using Visual Studio /MP flag.")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
-    endif ()
-endif ()
-
-add_subdirectory(dep)
-add_subdirectory(mcasm)
-add_subdirectory(rasm)
+install(
+    TARGETS rasm
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+)
