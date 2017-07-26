@@ -1,91 +1,99 @@
-The Rua-1 is a Big Endian system.
+The Rua-1 is a Little-Endian system.
 Opcodes are 8-bits, and can contain 0-N byte operands to form an instruction.
 
 Various portions of the architecture are inspired by the 6502, Z80 and the 8086 processors.
 However, it's different to all of them, and is really an architecture on it's own.
 
--------------------------------------------------------------------------------
+===============================================================================
  System overview
--------------------------------------------------------------------------------
+===============================================================================
 
-  Address Bus                Data Bus
-    (16-bit)                 (8-bit)
+Address Bus                Data Bus
+ (16-bit)                   (8-bit)
+    | |                      | |
+    | |     +------+<--PCL-->| |       +------+
+    | |<----|  PC  |         | |<=====>|  A   |
+    | |     +------+<--PCH-->| |       +------+
+    | |                      | |          |
+    | |     +------+<-MARL-->| |          v
+    | |<--->| MAR  |         | |       +------+
+    | |     +------+<-MARH-->| |<======| ALU  |--+
+    | |        |             | |       +------+  |
+               v             | |          ^      |
+            +------+         | |          |      |
+            |Memory|<------->| |       +------+  |
+            +------+         | |<=====>|  B   |  |
+                             | |       +------+  |
+            +------+         | |                 |
+            |Contrl|<------->| |       +------+  |
+            +------+         | |<=====>|  SR  |<-+
+                             | |       +------+
+                             | |
+              +------+       | |       +------+
+              |  SP  |<=====>| |<=====>|  X   |
+              +------+       | |       +------+
+                             | |
+                             | |       +------+
+                             | |<=====>|  Y   |
+                             | |       +------+
+                             | |
 
-      | |                      | |
-      | |     +------+<--PCL-->| |       +------+
-      | |<----|  PC  |         | |<=====>|  A   |
-      | |     +------+<--PCH-->| |       +------+
-      | |                      | |          |
-      | |     +------+<-MARL-->| |          v
-      | |<--->| MAR  |         | |       +------+
-      | |     +------+<-MARH-->| |<======| ALU  |--+
-      | |        |             | |       +------+  |
-                 v             | |          ^      |
-              +------+         | |          |      |
-              |Memory|<------->| |       +------+  |
-              +------+         | |<=====>|  B   |  |
-                               | |       +------+  |
-              +------+         | |                 |
-              |Contrl|<------->| |       +------+  |
-              +------+         | |<=====>|  SR  |<-+
-                               | |       +------+
-                               | |
-                +------+       | |       +------+
-                |  SP  |<=====>| |<=====>|  X   |
-                +------+       | |       +------+
-                               | |
-                               | |       +------+
-                               | |<=====>|  Y   |
-                               | |       +------+
-                               | |
-
--------------------------------------------------------------------------------
+===============================================================================
  Control signals
--------------------------------------------------------------------------------
+===============================================================================
 
-AI       Register A In
-AO       Register A Out
-BI       Register B In
-BO       Register B Out
-XI       Register X In
-XO       Register X Out
-YI       Register Y In
-YO       Register Y Out
-SFI      Status Flags In
-SFO      Status Flags Out
-ALM0     ALU Mode bit 0
-ALM1     ALU Mode bit 1
-ALM2     ALU Mode bit 2
-ALM3     ALU Mode bit 3
-ALO      ALU Out
-PCLI     Program Counter Low In
-PCLO     Program Counter Low Out
-PCHI     Program Counter High In
-PCHO     Program Counter High Out
-PCP      Program Counter ("Plus") Increment
-MARLI    Memory Address Register Low In
-MARLO    Memory Address Register Low Out
-MARHI    Memory Address Register High In
-MARHO    Memory Address Register High Out
-MI       Memory In
-MO       Memory Out
-CI       Control In
-CO       Control Out
-SPI      Stack Pointer Register In
-SPO      Stack Pointer Register Out
-PCI      Program Counter In
-PCO      Program Counter Out
-MARI     Memory Address Register In
-MARO     Memory Address Register Out
+  Signal  |  Description     
+-----------------------------------------------
+   AI     |  Register A In
+   AO     |  Register A Out
+   BI     |  Register B In
+   BO     |  Register B Out
+   XI     |  Register X In
+   XO     |  Register X Out
+   YI     |  Register Y In
+   YO     |  Register Y Out
+   SFI    |  Status Flags In
+   SFO    |  Status Flags Out
+   ALM0   |  ALU Mode bit 0
+   ALM1   |  ALU Mode bit 1
+   ALM2   |  ALU Mode bit 2
+   ALM3   |  ALU Mode bit 3
+   ALO    |  ALU Out
+   PCLI   |  Program Counter Low In
+   PCLO   |  Program Counter Low Out
+   PCHI   |  Program Counter High In
+   PCHO   |  Program Counter High Out
+   PCP    |  Program Counter ("Plus") Increment
+   MARLI  |  Memory Address Register Low In
+   MARLO  |  Memory Address Register Low Out
+   MARHI  |  Memory Address Register High In
+   MARHO  |  Memory Address Register High Out
+   MI     |  Memory In
+   MO     |  Memory Out
+   CI     |  Control In
+   CO     |  Control Out
+   SPI    |  Stack Pointer Register In
+   SPO    |  Stack Pointer Register Out
+   PCI    |  Program Counter In
+   PCO    |  Program Counter Out
+   MARI   |  Memory Address Register In
+   MARO   |  Memory Address Register Out
+   HLT    |  Halt the processor
 
--------------------------------------------------------------------------------
+===============================================================================
  Registers
--------------------------------------------------------------------------------
+===============================================================================
 
 +=============================================+
 |       8 bits         |        8 bits        |
 +=============================================+
-|                     PC                      |  Program counter
+|                     PC                      |  Program counter (internal)
++----------------------+----------------------+
+|         PCH          |         PCL          |  Program counter low and high bytes.
++=============================================+
+|                     MAR                     |  Memory Access Register (internal)
++----------------------+----------------------+
+|         MARH         |         MARL         |  Memory Access Register low and high bytes.
 +=============================================+
                        |          A           |  Accumulator
                        +======================+
@@ -100,9 +108,9 @@ MARO     Memory Address Register Out
                        |          SR          |  Status register
                        +======================+
 
--------------------------------------------------------------------------------
+===============================================================================
  Status register
--------------------------------------------------------------------------------
+===============================================================================
 
 +===============================================+
 |  7  |  6  |  5  |  4  |  3  |  2  |  1  |  0  |
@@ -119,86 +127,29 @@ MARO     Memory Address Register Out
   IE     | Interrupt enable | Can be used to turn off interrupts
 
 ===============================================================================
+ Instruction set addressing modes
+===============================================================================
+
+  Mode  |   Description
+--------------------------------------------------------
+  reg   | A register. Can be any of the 8-bit registers.
+  imm8  | 8-bit immediate value
+  adr   | 16-bit memory address
+
+===============================================================================
  Move operations
 ===============================================================================
 
-Move immediate (by value)
-Put value Y in register X.
-
-MOV X, Y
-
-Examples:
-
-    MOV A, 42
-    MOV B, 42
-    MOV C, 42
-    MOV CH, 42
-    MOV CL, 42
-
-Move register
-Put the value from register Y in register X.
-C, CL and CH can only be moved into A.
-
-MOV X, Y
-
-Examples:
-
-    MOV A, B
-    MOV B, A
-    MOV A, C
-    MOV A, CL
-    MOV A, CH
-    
-Move to memory immediate
-Put the value from register Y into memory on address X
-Only valid on A, B and C registers.
-
-MOV [X], Y
-
-Examples:
-
-    MOV [A], 42
-    MOV [B], 42
-    MOV [C], 42
-    
-Move to memory from register
-Put the value from register Y into memory address in register X
-MOV [X], Y
-
-Examples:
-
-    MOV [A], B
-    MOV [A], C
-    MOV [A], CL
-    MOV [A], CH
-
-Move from memory to register
-Put the value from address in register Y into register X
-
-MOV X, [Y]
-
-Examples:
-
-    MOV A, [B]
-    MOV A, [C]
-    MOV C, [B]
-    MOV CL, [B]
-    MOV CH, [B]
+MOV reg, reg
+MOV reg, imm8
+MOV reg, adr
+MOV adr, reg
 
 ===============================================================================
  Jump operations
 ===============================================================================
 
-A jump can be in 2 forms.
-
-Immediate:
-    JMP 0x1234
-    JMP 0x01FF
-
-Register:
-    JMP A
-    JMP B
-    JMP C
+JMP reg
 
 JMP can be replaced with any of the jump or conditional jump instructions below.
 
@@ -225,23 +176,16 @@ JMP can be replaced with any of the jump or conditional jump instructions below.
 ===============================================================================
 
 An ALU operation is always done through registers A, using B as the parameter value where applicable.
-The result can be written to a register, an immediate memory address,
-or an address pointer to by a register.
+The result can be written to a register, or an immediate memory address.
 
-Example:
-    ADD 0x1234
-    SUB A
-    LSH [C]
+add reg
+sub imm8
 
   Instruction |   Description
 ---------------------------------------------
      ADD      | Add (A + B)
      SUB      | Subtract (A - B)
      ADC      | Add with carry (A + B + CF)
-     MUL      | Multiply (A * B)
-     IMUL     | Signed multiply (A * B)
-     DIV      | Divide (A / B)
-     IDIV     | Signed divide (A / B)
      LSH      | Left shift (A << B)
      RSH      | Right shift (A >> B)
      OR       | OR (A | B)
@@ -260,27 +204,20 @@ Additionally, some ALU operations don't have an output:
  Procedures & Stack
 ===============================================================================
 
-CALL 0x1234
-CALL C
+CALL adr
+
 Push the current PC (Program Counter) register value onto the stack and jump.
 When RET is called, the PC value is popped from the stack back into PC.
 
 RET
 Return from a CALL.
 
-PUSHB 0x12
-Push an 8 bit immediate value on the stack.
+PUSH imm8
+PUSH reg
+PUSH adr
 
-PUSH 0x1234
-PUSH A
-PUSH B
-PUSH CL
-PUSH SF
-Push a value onto the stack from a register. The size of the value depends on the register.
-
-POP A
-POP SF
-Pop a value from the stack into a register.
+POP reg
+POP adr
 
 ===============================================================================
  Interrupts
