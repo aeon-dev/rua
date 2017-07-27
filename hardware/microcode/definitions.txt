@@ -1,0 +1,32 @@
+# All register control lines on the databus are 2 74138's 3 to 8-line decoder/demultiplexer.
+# This means that they are controlled by 8-bits (4 for reading, 4 for writing) This also means
+# that the hardware doesn't allow for writing or reading to multiple registers on the bus
+# at the same time, which will make this less error prone
+# The enable line for this is on eeprom 2, which is why all these values have their 8th bit set.
+
+# EEPROM 1 (Databus control)
+# Reg   Read  Write
+a       0x0101  0x0110
+b       0x0102  0x0120
+x       0x0103  0x0130
+y       0x0104  0x0140
+pcl     0x0105  0x0150
+pch     0x0106  0x0160
+marl    0x0107  0x0170
+marh    0x0108  0x0180
+sr      0x0109  0x0190
+sp      0x010A  0x01A0
+memory  0x010B  0x01B0
+control 0x010C  0x01C0
+
+# EEPROM 2 (Membus and misc control)
+# PC can not be written to, so we use 0 to indicate this.
+# Reg   Read     Write
+pc      0x0200  0x0000
+mar     0x0800  0x1000
+
+# Reserved keywords
+# PC_INCREMENT indicates the incrementation of the program counter control bit
+# EOI indicates end of instruction control bit to reset the counter in the control
+PC_INCREMENT 0x2000
+EOI 0x4000

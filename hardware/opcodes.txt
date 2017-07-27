@@ -63,7 +63,6 @@ Address Bus                Data Bus
    PCLO   |  Program Counter Low Out
    PCHI   |  Program Counter High In
    PCHO   |  Program Counter High Out
-   PCP    |  Program Counter ("Plus") Increment
    MARLI  |  Memory Address Register Low In
    MARLO  |  Memory Address Register Low Out
    MARHI  |  Memory Address Register High In
@@ -74,7 +73,7 @@ Address Bus                Data Bus
    CO     |  Control Out
    SPI    |  Stack Pointer Register In
    SPO    |  Stack Pointer Register Out
-   PCI    |  Program Counter In
+   PCP    |  Program Counter ("Plus") Increment
    PCO    |  Program Counter Out
    MARI   |  Memory Address Register In
    MARO   |  Memory Address Register Out
@@ -149,7 +148,7 @@ MOV adr, reg
  Jump operations
 ===============================================================================
 
-JMP reg
+JMP adr
 
 JMP can be replaced with any of the jump or conditional jump instructions below.
 
@@ -179,7 +178,7 @@ An ALU operation is always done through registers A, using B as the parameter va
 The result can be written to a register, or an immediate memory address.
 
 add reg
-sub imm8
+sub adr
 
   Instruction |   Description
 ---------------------------------------------
@@ -223,8 +222,9 @@ POP adr
  Interrupts
 ===============================================================================
 
-INT 0x03
-Call interrupt vector 0x12. There are 16 possible interrupt vectors.
+INT reg
+INT imm8
+Call interrupt vector.
 
 IRET
 Return from an interrupt call.

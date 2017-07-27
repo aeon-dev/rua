@@ -23,6 +23,8 @@
 
 set(RUA_MCASM
     src/main.cpp
+    src/definitions.cpp
+    src/definitions.h
 )
 
 source_group(common FILES ${RUA_MCASM})

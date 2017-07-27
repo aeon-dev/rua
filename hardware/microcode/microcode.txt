@@ -1,0 +1,14 @@
+# every instruction
+out pc
+out mar
+out memory
+in control
+count
+
+# mov mem, a
+out pc
+in mar
+out memory
+in a
+count
+
