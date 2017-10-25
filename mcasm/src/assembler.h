@@ -21,6 +21,8 @@ public:
     void assemble();
 
 private:
+    void parse();
+
     void parse_file(const std::string &file);
     void parse_include(const std::string &line, int line_number);
     void parse_macro_call(const std::string &line, int line_number);

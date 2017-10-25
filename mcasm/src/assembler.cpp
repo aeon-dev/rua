@@ -1,9 +1,11 @@
 #include "assembler.h"
 #include <aeon/streams/file_stream.h>
 #include <aeon/common/string.h>
+#include <aeon/utility/timer.h>
 #include <array>
 #include <iostream>
 #include <stdexcept>
+#include <iomanip>
 
 namespace rua
 {
@@ -43,8 +45,20 @@ bool assembler::parse_arguments(int argc, char *argv[])
 
 void assembler::assemble()
 {
-    parse_file(input_file_);
+    parse();
     write_output_roms();
+    std::cout << "Done.\n";
+}
+
+void assembler::parse()
+{
+    aeon::utility::timer timer;
+    std::cout << "Assembling...";
+    parse_file(input_file_);
+
+    auto milliseconds = static_cast<float>(timer.get_time_difference() * 1000);
+
+    std::cout << "done. (Took: " << std::setw(3) << std::setprecision(2) << milliseconds << "ms.)\n";
 }
 
 void assembler::parse_file(const std::string &file)
@@ -85,7 +99,10 @@ void assembler::parse_file(const std::string &file)
         if (line[0] == '[')
         {
             last_header_ = header(line, line_number);
-            last_header_.debug_print();
+
+            if (last_header_.get_type() == header_type::macro)
+                macros_[last_header_.get_name()] = {};
+
             continue;
         }
 
@@ -158,10 +175,17 @@ void assembler::parse_instructions(const std::string &line, int line_number)
 
     std::uint64_t microcode = 0;
 
-    for (auto &instruction : instructions)
+    try
     {
-        auto signal = signals_parser_->get_control_signal(aeon::common::string::trimmed(instruction));
-        microcode |= signal.bit_value;
+        for (auto &instruction : instructions)
+        {
+            auto signal = signals_parser_->get_control_signal(aeon::common::string::trimmed(instruction));
+            microcode |= signal.bit_value;
+        }
+    }
+    catch (const std::exception &e)
+    {
+        throw std::runtime_error("Error (line " + std::to_string(line_number) + "): " + e.what());
     }
 
     if (last_header_.get_type() == header_type::macro)
@@ -185,6 +209,10 @@ void assembler::check_opcode_length(const int line_number) const
 
 void assembler::write_output_roms()
 {
+    aeon::utility::timer timer;
+
+    std::cout << "Writing ROM firmware...";
+
     const auto array_size = (eeprom_address_bits << 8);
 
     for (int i = 0; i < 8; ++i)
@@ -212,6 +240,9 @@ void assembler::write_output_roms()
                                        aeon::streams::access_mode::write | aeon::streams::access_mode::truncate);
         rom.write(firmware.data(), array_size);
     }
+
+    auto milliseconds = static_cast<float>(timer.get_time_difference() * 1000);
+    std::cout << "done. (Took: " << std::setw(3) << std::setprecision(2) << milliseconds << "ms.)\n";
 }
 
 } // namespace rua

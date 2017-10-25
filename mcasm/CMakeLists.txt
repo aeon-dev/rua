@@ -39,7 +39,12 @@ set_target_properties(mcasm PROPERTIES
 )
 
 target_include_directories(mcasm PRIVATE src)
-target_link_libraries(mcasm common)
+target_link_libraries(mcasm
+    common
+    aeon_common
+    aeon_utility
+    aeon_streams
+)
 
 install(
     TARGETS mcasm
