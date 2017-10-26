@@ -17,7 +17,7 @@ static const auto eeprom_address_bits = 11;
 
 static const auto max_cycles_per_opcode = (1 << (eeprom_address_bits - instruction_bits));
 
-static const std::string firmware_filename = "firmware";
+static const std::string firmware_filename = "microcode";
 static const std::string firmware_extension = "bin";
 
 assembler::assembler()
@@ -67,7 +67,6 @@ void assembler::parse_file(const std::string &file)
 
     aeon::streams::file_stream s(file, aeon::streams::file_mode::text);
 
-    // int current_opcode = -1;
     unsigned int line_number = 0;
 
     while (!s.eof())
