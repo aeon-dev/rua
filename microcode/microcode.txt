@@ -1,13 +1,4 @@
 #include "fetch.inc"
 
-[0x00]          # MOV A, B
-!fetch
-ao, bi, eoi     # Mov a, b and end of instruction
-
-[0x01]          # MOV A, X
-!fetch
-ao, xi, eoi     # Mov a, x and end of instruction
-
-[0x02]          # MOV A, Y
-!fetch
-ao, yi, eoi     # Mov a, y and end of instruction
+#include "mov_regm.inc"
+#include "mov_imm8.inc"
