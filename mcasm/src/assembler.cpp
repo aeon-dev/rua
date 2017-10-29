@@ -29,7 +29,7 @@ assembler::assembler()
 {
 }
 
-bool assembler::parse_arguments(int argc, char *argv[])
+bool assembler::parse_arguments(const int argc, char *argv[])
 {
     if (argc != 2)
     {
@@ -56,7 +56,7 @@ void assembler::parse()
     std::cout << "Assembling...";
     parse_file(input_file_);
 
-    auto milliseconds = static_cast<float>(timer.get_time_difference() * 1000);
+    const auto milliseconds = static_cast<float>(timer.get_time_difference() * 1000);
 
     std::cout << "done. (Took: " << std::setw(3) << std::setprecision(2) << milliseconds << "ms.)\n";
 }
@@ -109,13 +109,13 @@ void assembler::parse_file(const std::string &file)
     }
 }
 
-void assembler::parse_include(const std::string &line, int line_number)
+void assembler::parse_include(const std::string &line, const int line_number)
 {
     if (!aeon::common::string::begins_with(line, "#include"))
         return;
 
-    auto begin = line.find_first_of('"');
-    auto end = line.find_last_of('"');
+    const auto begin = line.find_first_of('"');
+    const auto end = line.find_last_of('"');
 
     if (begin == std::string::npos || end == std::string::npos)
     {
@@ -123,17 +123,17 @@ void assembler::parse_include(const std::string &line, int line_number)
                                  "): Could not parse #include directive.");
     }
 
-    auto filename = aeon::common::string::strip_both(line.substr(begin, end), 1);
+    const auto filename = aeon::common::string::strip_both(line.substr(begin, end), 1);
     parse_file(filename);
 }
 
-void assembler::parse_macro_call(const std::string &line, int line_number)
+void assembler::parse_macro_call(const std::string &line, const int line_number)
 {
     if (last_header_.get_type() == header_type::none)
         throw std::runtime_error("Error (line " + std::to_string(line_number) +
                                  "): Unexpected instructions. Expected header instead.");
 
-    auto macro_name = aeon::common::string::strip_left(line, 1);
+    const auto macro_name = aeon::common::string::strip_left(line, 1);
 
     auto result = macros_.find(macro_name);
 
@@ -164,7 +164,7 @@ void assembler::parse_macro_call(const std::string &line, int line_number)
     }
 }
 
-void assembler::parse_instructions(const std::string &line, int line_number)
+void assembler::parse_instructions(const std::string &line, const int line_number)
 {
     if (last_header_.get_type() == header_type::none)
         throw std::runtime_error("Error (line " + std::to_string(line_number) +
@@ -178,7 +178,7 @@ void assembler::parse_instructions(const std::string &line, int line_number)
     {
         for (auto &instruction : instructions)
         {
-            auto signal = signals_parser_->get_control_signal(aeon::common::string::trimmed(instruction));
+            const auto signal = signals_parser_->get_control_signal(aeon::common::string::trimmed(instruction));
             microcode |= signal.bit_value;
         }
     }
@@ -233,14 +233,14 @@ void assembler::write_output_roms()
             }
         }
 
-        auto filename = firmware_filename + std::to_string(i) + "." + firmware_extension;
+        const auto filename = firmware_filename + std::to_string(i) + "." + firmware_extension;
 
         aeon::streams::file_stream rom(filename,
                                        aeon::streams::access_mode::write | aeon::streams::access_mode::truncate);
         rom.write(firmware.data(), array_size);
     }
 
-    auto milliseconds = static_cast<float>(timer.get_time_difference() * 1000);
+    const auto milliseconds = static_cast<float>(timer.get_time_difference() * 1000);
     std::cout << "done. (Took: " << std::setw(3) << std::setprecision(2) << milliseconds << "ms.)\n";
 }
 

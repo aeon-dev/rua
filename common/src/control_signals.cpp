@@ -21,7 +21,7 @@ auto control_signals_parser::get_control_signals() const -> std::vector<control_
 
 auto control_signals_parser::get_control_signal(const std::string &name) const -> control_signal
 {
-    auto upper_name = aeon::common::string::to_upper(name);
+    const auto upper_name = aeon::common::string::to_upper(name);
 
     for (auto &signal : control_signals_)
     {
@@ -57,9 +57,9 @@ void control_signals_parser::parse_line(const std::string &line, const unsigned 
         throw std::runtime_error("Error (line " + std::to_string(line_number) +
                                  "): Expected 3 tokens per line seperated by a comma.");
 
-    auto signal_name = parse_signal_name(microcode_entry, line_number);
-    auto signal_bitval = parse_signal_bitval(microcode_entry, line_number);
-    auto signal_description = parse_signal_description(microcode_entry, line_number);
+    const auto signal_name = parse_signal_name(microcode_entry, line_number);
+    const auto signal_bitval = parse_signal_bitval(microcode_entry, line_number);
+    const auto signal_description = parse_signal_description(microcode_entry, line_number);
 
     control_signals_.push_back({signal_name, signal_description, signal_bitval});
 }
@@ -88,7 +88,7 @@ auto control_signals_parser::parse_signal_bitval(const std::vector<std::string> 
         throw std::runtime_error("Error (line " + std::to_string(line_number) +
                                  "): Expected signal bit value in hex. Like: 0x0.");
 
-    auto bitval = from_hex_string(signal_bitval_str);
+    const auto bitval = from_hex_string(signal_bitval_str);
 
     if (bitval == 0)
         throw std::runtime_error("Error (line " + std::to_string(line_number) +

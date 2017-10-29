@@ -5,7 +5,7 @@
 class simulated_register8 : public ibus_transceiver<8>
 {
 public:
-    explicit simulated_register8(const std::string &name);
+    explicit simulated_register8(const std::string &name, const std::uint64_t read_bit, const std::uint64_t write_bit);
 
     virtual ~simulated_register8();
 
