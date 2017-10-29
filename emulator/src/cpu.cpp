@@ -3,10 +3,10 @@
 #include "simulated_alu.h"
 
 cpu::cpu()
-    : register_a_(std::make_unique<simulated_register8>("A"))
-    , register_b_(std::make_unique<simulated_register8>("B"))
-    , register_x_(std::make_unique<simulated_register8>("X"))
-    , register_y_(std::make_unique<simulated_register8>("Y"))
+    : register_a_(std::make_unique<simulated_register8>("A", 0, 0))
+    , register_b_(std::make_unique<simulated_register8>("B", 0, 0))
+    , register_x_(std::make_unique<simulated_register8>("X", 0, 0))
+    , register_y_(std::make_unique<simulated_register8>("Y", 0, 0))
     , alu_(std::make_unique<simulated_alu>(*register_a_, *register_b_))
 {
     register_simulated_modules();

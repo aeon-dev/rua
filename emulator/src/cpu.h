@@ -16,11 +16,11 @@ public:
 private:
     void register_simulated_modules();
 
-    bus<8> databus_;
+    bus databus_;
 
-    std::unique_ptr<ibus_transceiver<8>> register_a_;
-    std::unique_ptr<ibus_transceiver<8>> register_b_;
-    std::unique_ptr<ibus_transceiver<8>> register_x_;
-    std::unique_ptr<ibus_transceiver<8>> register_y_;
-    std::unique_ptr<ibus_transceiver<8>> alu_;
+    std::unique_ptr<ibus_transceiver8> register_a_;
+    std::unique_ptr<ibus_transceiver8> register_b_;
+    std::unique_ptr<ibus_transceiver8> register_x_;
+    std::unique_ptr<ibus_transceiver8> register_y_;
+    std::unique_ptr<ibus_transceiver8> alu_;
 };

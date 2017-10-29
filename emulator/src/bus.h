@@ -1,21 +1,19 @@
 #pragma once
 
 #include "ibus_transceiver.h"
-#include "module.h"
 #include <vector>
 
-template <int bits_t>
 class bus
 {
 public:
     bus() = default;
     virtual ~bus() = default;
 
-    auto get_value() const;
+    auto get_value() const -> std::uint8_t;
 
     void tick();
 
-    void connect_transceiver(ibus_transceiver<bits_t> &transceiver);
+    void connect_transceiver(ibus_transceiver8 &transceiver);
 
 private:
     /*!
@@ -30,5 +28,5 @@ private:
      */
     void transfer_data();
 
-    std::vector<ibus_transceiver<bits_t> *> transceivers_;
+    std::vector<ibus_transceiver8 *> transceivers_;
 };

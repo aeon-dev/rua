@@ -2,7 +2,7 @@
 
 #include "ibus_transceiver.h"
 
-class simulated_register8 : public ibus_transceiver<8>
+class simulated_register8 : public ibus_transceiver8
 {
 public:
     explicit simulated_register8(const std::string &name, const std::uint64_t read_bit, const std::uint64_t write_bit);
@@ -15,17 +15,17 @@ public:
 
     auto get_output_enabled() const -> bool override;
 
-    auto get_output() const -> typename ibus_transceiver<8>::type override;
+    auto get_output() const -> std::uint8_t override;
 
-    void set_read_enabled(const bool enable) override;
+    void set_output_value(const std::uint8_t value) override;
 
-    void set_output_enabled(const bool enable) override;
-
-    void set_output_value(const typename ibus_transceiver<8>::type value) override;
+    void update_control_flags(const std::uint64_t value) override;
 
 protected:
     std::string name_;
     bool read_enabled_;
     bool output_enabled_;
-    typename ibus_transceiver<8>::type value_;
+    std::uint8_t value_;
+    std::uint64_t read_bit_;
+    std::uint64_t write_bit_;
 };

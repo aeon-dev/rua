@@ -1,10 +1,6 @@
 #include "bus.h"
 
-template class bus<8>;
-template class bus<16>;
-
-template <int bits_t>
-auto bus<bits_t>::get_value() const
+auto bus::get_value() const -> std::uint8_t
 {
     for (const auto transceiver : transceivers_)
     {
@@ -12,24 +8,21 @@ auto bus<bits_t>::get_value() const
             return transceiver->get_output();
     }
 
-    return typename bits_to_type_trait<bits_t>::type(0);
+    return 0;
 }
 
-template <int bits_t>
-void bus<bits_t>::tick()
+void bus::tick()
 {
     check_bus_collisions();
     transfer_data();
 }
 
-template <int bits_t>
-void bus<bits_t>::connect_transceiver(ibus_transceiver<bits_t> &transceiver)
+void bus::connect_transceiver(ibus_transceiver8 &transceiver)
 {
     transceivers_.push_back(&transceiver);
 }
 
-template <int bits_t>
-void bus<bits_t>::check_bus_collisions()
+void bus::check_bus_collisions()
 {
     bool device_active = false;
     for (const auto transceiver : transceivers_)
@@ -48,10 +41,9 @@ void bus<bits_t>::check_bus_collisions()
     }
 }
 
-template <int bits_t>
-void bus<bits_t>::transfer_data()
+void bus::transfer_data()
 {
-    auto value = get_value();
+    const auto value = get_value();
 
     for (const auto transceiver : transceivers_)
     {
